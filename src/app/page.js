@@ -1,7 +1,7 @@
 "use client";
 import { useState } from 'react';
 import Link from 'next/link';
-
+import { useParams } from 'next/navigation';
 import Image from 'next/image';
 import Navbar from './components/Navbar.js';
 
@@ -103,7 +103,7 @@ export default function Home() {
 
             <li><button
             
-            className="mt-2 mb-2 px-4 py-2 bg-[#d62828] text-[#EFE2BA] rounded-full hover:bg-[#d62828] transition"><Link href={`/course/${course.id}.js`}>Enter Course</Link></button></li>
+            className="mt-2 mb-2 px-4 py-2 bg-[#d62828] text-[#EFE2BA] rounded-full hover:bg-[#d62828] transition"><Link href={`/courses/${course.id}`}>Enter Course</Link></button></li>
           </ul>
           </div>
       ))}
