@@ -1,4 +1,4 @@
-"use client"; // Если у вас компонент на стороне клиента
+"use client";
 
 import './globals.css';
 
@@ -8,5 +8,5 @@ export default function RootLayout({ children }) {
       <body>{children}</body>
     </html>
   );
-  
+
 }
