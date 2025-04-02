@@ -1,17 +1,63 @@
 "use client";
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import Navbar from '../../components/Navbar.js';
 import Image from 'next/image';
+import { useState, useEffect } from 'react';
 
 export default function CourseContent() {
   const params = useParams();
+  const router = useRouter();
   const courseId = params.id;
+
+  // Состояния для выбранной главы и урока
+  const [selectedChapter, setSelectedChapter] = useState('Chapter 1');
+  const [selectedLesson, setSelectedLesson] = useState('Lesson 1');
+  
+  // Состояния для теста
+  const [selectedAnswers, setSelectedAnswers] = useState({});
+  const [testSubmitted, setTestSubmitted] = useState(false);
+  const [score, setScore] = useState(null);
+
+  // Правильные ответы
+  const correctAnswers = {
+    '1': 'A Specialist Who Manages The Product Strategy',
+    '2': 'Communication Skills',
+    '3': 'Minimum Viable Product'
+  };
+
+  const chapters = [
+    {
+      id: 'Chapter 1',
+      title: 'Chapter 1',
+      lessons: [
+        { id: 'Lesson 1', title: 'Lesson 1' },
+        { id: 'Lesson 2', title: 'Lesson 2' },
+        { id: 'Lesson 3', title: 'Lesson 3' }
+      ]
+    },
+    {
+      id: 'Chapter 2',
+      title: 'Chapter 2',
+      lessons: [
+        { id: 'Lesson 1', title: 'Lesson 1' },
+        { id: 'Lesson 2', title: 'Lesson 2' },
+        { id: 'Lesson 3', title: 'Lesson 3' }
+      ]
+    },
+    {
+      id: 'Chapter 3',
+      title: 'Chapter 3',
+      lessons: [
+        { id: 'Lesson 1', title: 'Lesson 1' },
+        { id: 'Lesson 2', title: 'Lesson 2' },
+        { id: 'Lesson 3', title: 'Lesson 3' }
+      ]
+    }
+  ];
 
   const course = {
     id: courseId,
     title: 'Fundamentals Of Product Management: From Idea To Launch',
-    currentChapter: 'Chapter 1',
-    currentLesson: 'Lesson 1',
     content: {
       title: 'Introduction To Product Management',
       sections: [
@@ -83,19 +129,75 @@ The key tasks of a product manager are:
     }
   };
 
+  // Обработчик изменения главы
+  const handleChapterChange = (e) => {
+    const newChapter = e.target.value;
+    setSelectedChapter(newChapter);
+    setSelectedLesson('Lesson 1'); // Сброс урока на первый при смене главы
+    router.push(`/courses/${courseId}?chapter=${newChapter}&lesson=Lesson 1`);
+  };
+
+  // Обработчик изменения урока
+  const handleLessonChange = (e) => {
+    const newLesson = e.target.value;
+    setSelectedLesson(newLesson);
+    router.push(`/courses/${courseId}?chapter=${selectedChapter}&lesson=${newLesson}`);
+  };
+
+  // Получаем список уроков для выбранной главы
+  const currentChapterLessons = chapters.find(ch => ch.id === selectedChapter)?.lessons || [];
+
+  // Обработчик выбора ответа
+  const handleAnswerSelect = (questionIndex, answer) => {
+    setSelectedAnswers(prev => ({
+      ...prev,
+      [questionIndex]: answer
+    }));
+  };
+
+  // Обработчик отправки теста
+  const handleTestSubmit = () => {
+    let correctCount = 0;
+    Object.entries(selectedAnswers).forEach(([questionIndex, answer]) => {
+      if (correctAnswers[questionIndex] === answer) {
+        correctCount++;
+      }
+    });
+    
+    const scorePercentage = (correctCount / Object.keys(correctAnswers).length) * 100;
+    setScore(scorePercentage);
+    setTestSubmitted(true);
+  };
+
   return (
     <main className="min-h-screen bg-[#EFE2BA] p-8 font-sans">
       <Navbar />
       
       {/* Course Header */}
       <div className="bg-[#F13C20] text-white p-4 rounded-xl mb-6 flex items-center justify-between">
-        <h1 className="text-xl">{course.title}</h1>
+        <h1 className="text-xl text-[#EFE2BA]">{course.title}</h1>
         <div className="flex gap-4">
-          <select className="bg-[#4056A1] text-white px-4 py-2 rounded-lg">
-            <option>{course.currentChapter}</option>
+          <select 
+            value={selectedChapter}
+            onChange={handleChapterChange}
+            className="bg-[#4056A1] text-[#EFE2BA] px-4 py-2 rounded-lg"
+          >
+            {chapters.map((chapter) => (
+              <option key={chapter.id} value={chapter.id}>
+                {chapter.title}
+              </option>
+            ))}
           </select>
-          <select className="bg-[#4056A1] text-white px-4 py-2 rounded-lg">
-            <option>{course.currentLesson}</option>
+          <select 
+            value={selectedLesson}
+            onChange={handleLessonChange}
+            className="bg-[#4056A1] text-[#EFE2BA] px-4 py-2 rounded-lg"
+          >
+            {currentChapterLessons.map((lesson) => (
+              <option key={lesson.id} value={lesson.id}>
+                {lesson.title}
+              </option>
+            ))}
           </select>
         </div>
       </div>
@@ -123,7 +225,16 @@ The key tasks of a product manager are:
                 {q.options.map((option, optIndex) => (
                   <button
                     key={optIndex}
-                    className="w-full text-left p-3 bg-[#E6A5A0] text-white rounded-lg hover:bg-[#F13C20] transition-colors"
+                    onClick={() => handleAnswerSelect(index + 1, option)}
+                    className={`w-full text-center p-3 rounded-lg transition-colors
+                      ${selectedAnswers[index + 1] === option 
+                        ? 'bg-[#F13C20] text-[#EFE2BA]' 
+                        : 'bg-[#E6A5A0] text-[#EFE2BA] hover:bg-[#F13C20]'}
+                      ${testSubmitted && correctAnswers[index + 1] === option 
+                        ? 'bg-green-500' 
+                        : testSubmitted && selectedAnswers[index + 1] === option && correctAnswers[index + 1] !== option 
+                          ? 'bg-gray-400' 
+                          : ''}`}
                   >
                     {option}
                   </button>
@@ -131,9 +242,20 @@ The key tasks of a product manager are:
               </div>
             </div>
           ))}
-          <button className="w-full bg-[#4056A1] text-white py-3 rounded-lg mt-4 hover:bg-[#2E3E7D] transition-colors">
-            Submit Answers
-          </button>
+          <div className="space-y-4">
+            <button 
+              onClick={handleTestSubmit}
+              className="w-full bg-[#4056A1] text-[#EFE2BA] py-3 rounded-lg hover:bg-[#2E3E7D] transition-colors"
+            >
+              Submit Answers
+            </button>
+            {testSubmitted && score !== null && (
+              <div className={`text-center p-4 rounded-lg ${score >= 70 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                Your score: {Math.round(score)}%
+                {Math.round(score) >= 70 ? ' - Great job!' : ' - Keep practicing!'}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -157,7 +279,7 @@ The key tasks of a product manager are:
           <input
             type="text"
             placeholder="Ask AI-Assistant A Quastion"
-            className="w-full p-4 pr-12 rounded-full bg-white text-[#4056A1]"
+            className="w-full p-4 pr-12 rounded-full text-[#4056A1] bg-[#EFE2BA]"
           />
           <button className="absolute right-4 top-1/2 -translate-y-1/2">
             <Image
