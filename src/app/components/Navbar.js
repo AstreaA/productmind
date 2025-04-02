@@ -9,7 +9,7 @@ export default function Navbar() {
         <h1 className="text-4xl font-bold text-[#f13c20]">ProductMind</h1>
         <div className="flex gap-4 text-[#d62828] font-bold">
           <a href="#" className="hover:underline mr-2 mt-3">Menu</a>
-          <Image src="/menu.png" alt="Menu" width={50} height={50} />
+          <Image src="/images/menu.png" alt="Menu" width={50} height={50} />
           
         </div>
         
