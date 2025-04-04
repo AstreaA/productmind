@@ -2,7 +2,7 @@
 import { useParams, useRouter } from 'next/navigation';
 import Navbar from '../../components/Navbar.js';
 import Image from 'next/image';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 export default function CourseContent() {
   const params = useParams();
@@ -17,6 +17,12 @@ export default function CourseContent() {
   const [selectedAnswers, setSelectedAnswers] = useState({});
   const [testSubmitted, setTestSubmitted] = useState(false);
   const [score, setScore] = useState(null);
+
+  // Состояния для чата
+  const [messages, setMessages] = useState([]);
+  const [inputMessage, setInputMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const messagesEndRef = useRef(null);
 
   // Правильные ответы
   const correctAnswers = {
@@ -129,6 +135,40 @@ The key tasks of a product manager are:
     }
   };
 
+  // Сценарии ответов AI для разных тем
+  const aiResponses = {
+    'product manager': {
+      keywords: ['product manager', 'pm', 'product management'],
+      response: "A Product Manager is a professional who is responsible for the product strategy, roadmap, and feature definition. They work at the intersection of business, technology, and user experience to create successful products."
+    },
+    'mvp': {
+      keywords: ['mvp', 'minimum viable product', 'product launch'],
+      response: "An MVP (Minimum Viable Product) is the most basic version of a product that can be released to users while still providing value. It helps validate ideas and gather user feedback early in the development process."
+    },
+    'agile': {
+      keywords: ['agile', 'scrum', 'sprint'],
+      response: "Agile is an iterative approach to project management and software development that helps teams deliver value to their customers faster and with fewer headaches. It focuses on continuous improvement and adapting to change."
+    },
+    'default': {
+      response: "I'm here to help you understand product management concepts. Could you please rephrase your question or ask about a specific topic like product strategy, user research, or product development?"
+    }
+  };
+
+  // Функция для определения ответа AI на основе сообщения пользователя
+  const getAIResponse = (userMessage) => {
+    const lowerMessage = userMessage.toLowerCase();
+    
+    for (const [topic, data] of Object.entries(aiResponses)) {
+      if (topic === 'default') continue;
+      
+      if (data.keywords.some(keyword => lowerMessage.includes(keyword))) {
+        return data.response;
+      }
+    }
+    
+    return aiResponses.default.response;
+  };
+
   // Обработчик изменения главы
   const handleChapterChange = (e) => {
     const newChapter = e.target.value;
@@ -168,6 +208,55 @@ The key tasks of a product manager are:
     setScore(scorePercentage);
     setTestSubmitted(true);
   };
+
+  // Обработчик отправки сообщения
+  const handleSendMessage = async (e) => {
+    e.preventDefault();
+    if (!inputMessage.trim()) return;
+
+    // Добавляем сообщение пользователя
+    const userMessage = inputMessage.trim();
+    setMessages(prev => [...prev, { type: 'user', content: userMessage }]);
+    setInputMessage('');
+    setIsLoading(true);
+
+    try {
+      // Отправляем запрос к API
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ message: userMessage }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to get response from AI');
+      }
+
+      const data = await response.json();
+      
+      // Добавляем ответ AI
+      setMessages(prev => [...prev, { type: 'ai', content: data.response }]);
+    } catch (error) {
+      console.error('Error:', error);
+      setMessages(prev => [...prev, { 
+        type: 'ai', 
+        content: 'Sorry, I encountered an error. Please try again.' 
+      }]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Прокрутка к последнему сообщению
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
   return (
     <main className="min-h-screen bg-[#EFE2BA] p-8 font-sans">
@@ -275,13 +364,49 @@ The key tasks of a product manager are:
             Having Trouble? I, AI-Assistant, You Can Ask Me Your Question About The Topic Of The Lesson And I Will Try To Help You.
           </p>
         </div>
-        <div className="relative">
+
+        {/* Chat Messages */}
+        <div className="h-64 overflow-y-auto mb-4 space-y-4">
+          {messages.map((message, index) => (
+            <div
+              key={index}
+              className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
+            >
+              <div
+                className={`max-w-[80%] p-3 rounded-lg ${
+                  message.type === 'user'
+                    ? 'bg-[#F13C20] text-[#EFE2BA]'
+                    : 'bg-[#4056A1] text-[#EFE2BA]'
+                }`}
+              >
+                {message.content}
+              </div>
+            </div>
+          ))}
+          {isLoading && (
+            <div className="flex justify-start">
+              <div className="bg-[#4056A1] text-[#EFE2BA] p-3 rounded-lg">
+                Thinking...
+              </div>
+            </div>
+          )}
+          <div ref={messagesEndRef} />
+        </div>
+
+        {/* Chat Input */}
+        <form onSubmit={handleSendMessage} className="relative">
           <input
             type="text"
-            placeholder="Ask AI-Assistant A Quastion"
+            value={inputMessage}
+            onChange={(e) => setInputMessage(e.target.value)}
+            placeholder="Ask AI-Assistant A Question"
             className="w-full p-4 pr-12 rounded-full text-[#4056A1] bg-[#EFE2BA]"
           />
-          <button className="absolute right-4 top-1/2 -translate-y-1/2">
+          <button
+            type="submit"
+            className="absolute right-4 top-1/2 -translate-y-1/2"
+            disabled={isLoading}
+          >
             <Image
               src="/images/send.png"
               alt="Send"
@@ -289,7 +414,7 @@ The key tasks of a product manager are:
               height={24}
             />
           </button>
-        </div>
+        </form>
       </div>
     </main>
   );
