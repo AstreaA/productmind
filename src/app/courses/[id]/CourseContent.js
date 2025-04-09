@@ -1,6 +1,5 @@
 "use client";
 import { useParams, useRouter } from 'next/navigation';
-import Navbar from '../../components/Navbar.js';
 import Image from 'next/image';
 import { useState, useEffect, useRef } from 'react';
 
@@ -214,14 +213,13 @@ The key tasks of a product manager are:
     e.preventDefault();
     if (!inputMessage.trim()) return;
 
-    // Добавляем сообщение пользователя
     const userMessage = inputMessage.trim();
     setMessages(prev => [...prev, { type: 'user', content: userMessage }]);
     setInputMessage('');
     setIsLoading(true);
 
     try {
-      // Отправляем запрос к API
+      console.log('Sending message to API:', userMessage);
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: {
@@ -230,19 +228,27 @@ The key tasks of a product manager are:
         body: JSON.stringify({ message: userMessage }),
       });
 
+      console.log('API response status:', response.status);
+      const data = await response.json();
+      console.log('API response data:', data);
+
       if (!response.ok) {
-        throw new Error('Failed to get response from AI');
+        throw new Error(data.error || data.details || 'Failed to get response from AI');
       }
 
-      const data = await response.json();
-      
-      // Добавляем ответ AI
-      setMessages(prev => [...prev, { type: 'ai', content: data.response }]);
-    } catch (error) {
-      console.error('Error:', error);
+      if (!data.response) {
+        throw new Error('No response content received from API');
+      }
+
       setMessages(prev => [...prev, { 
         type: 'ai', 
-        content: 'Sorry, I encountered an error. Please try again.' 
+        content: data.response 
+      }]);
+    } catch (error) {
+      console.error('Chat error:', error);
+      setMessages(prev => [...prev, { 
+        type: 'ai', 
+        content: `Error: ${error.message}. Please try again.`
       }]);
     } finally {
       setIsLoading(false);
@@ -259,17 +265,21 @@ The key tasks of a product manager are:
   }, [messages]);
 
   return (
-    <main className="min-h-screen bg-[#EFE2BA] p-8 font-sans">
-      <Navbar />
-      
+    <main>
       {/* Course Header */}
       <div className="bg-[#F13C20] text-white p-4 rounded-xl mb-6 flex items-center justify-between">
-        <h1 className="text-xl text-[#EFE2BA]">{course.title}</h1>
+        <h1 className="text-xl font-bold text-[#EFE2BA]">{course.title}</h1>
         <div className="flex gap-4">
           <select 
             value={selectedChapter}
             onChange={handleChapterChange}
-            className="bg-[#4056A1] text-[#EFE2BA] px-4 py-2 rounded-lg"
+            className="bg-[#4056A1] text-[#EFE2BA] px-4 py-2 rounded-lg style-none min-w-[200px] font-bold appearance-none bg-no-repeat"
+            style={{ 
+              backgroundImage: "url(\"data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23EFE2BA'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e\")",
+              backgroundPosition: "right 0.75rem center",
+              backgroundSize: "1.5em 1.5em",
+              paddingRight: "2.5rem"
+            }}
           >
             {chapters.map((chapter) => (
               <option key={chapter.id} value={chapter.id}>
@@ -280,7 +290,13 @@ The key tasks of a product manager are:
           <select 
             value={selectedLesson}
             onChange={handleLessonChange}
-            className="bg-[#4056A1] text-[#EFE2BA] px-4 py-2 rounded-lg"
+            className="bg-[#4056A1] text-[#EFE2BA] px-4 py-2 rounded-lg min-w-[200px] font-bold appearance-none bg-no-repeat"
+            style={{ 
+              backgroundImage: "url(\"data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23EFE2BA'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e\")",
+              backgroundPosition: "right 0.75rem center",
+              backgroundSize: "1.5em 1.5em",
+              paddingRight: "2.5rem"
+            }}
           >
             {currentChapterLessons.map((lesson) => (
               <option key={lesson.id} value={lesson.id}>
@@ -295,10 +311,10 @@ The key tasks of a product manager are:
       <div className="grid grid-cols-2 gap-6">
         {/* Left Column - Lesson Content */}
         <div className="bg-[#C5CBE3] rounded-xl p-6">
-          <h2 className="text-2xl text-[#F13C20] mb-6">{course.content.title}</h2>
+          <h2 className="text-2xl font-bold text-[#F13C20] mb-6">{course.content.title}</h2>
           {course.content.sections.map((section, index) => (
             <div key={index} className="mb-6">
-              <h3 className="text-[#4056A1] font-semibold mb-2">{section.title}</h3>
+              <h3 className="text-[#4056A1] font-bold mb-2">{section.title}</h3>
               <p className="text-[#4056A1] whitespace-pre-line">{section.content}</p>
             </div>
           ))}
@@ -306,7 +322,7 @@ The key tasks of a product manager are:
 
         {/* Right Column - Test */}
         <div className="bg-[#C5CBE3] rounded-xl p-6">
-          <h2 className="text-2xl text-[#4056A1] mb-6">{course.test.title}</h2>
+          <h2 className="text-2xl font-bold text-[#4056A1] mb-6">{course.test.title}</h2>
           {course.test.questions.map((q, index) => (
             <div key={index} className="mb-6">
               <h3 className="text-[#4056A1] font-semibold mb-4">{q.question}</h3>
