@@ -27,7 +27,7 @@ export async function POST(request) {
       messages: [
         {
           role: "system",
-          content: "You are a helpful assistant for a product management course."
+          content: "You are a helpful assistant for a product management course. You specialize in product management concepts, methodologies, and best practices. Provide clear, concise, and practical answers about product management topics. Focus on real-world applications and examples when possible."
         },
         {
           role: "user",

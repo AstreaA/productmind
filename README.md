@@ -1,24 +1,63 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# ProductMind
 
-## Getting Started
+A platform for learning product management.
 
-First, run the development server:
+## Features
 
+- User authentication (login/register)
+- Course listings
+- User profiles
+- Interactive learning content
+
+## Setup Instructions
+
+### Prerequisites
+
+- Node.js 18+ and npm
+- Modern browser with IndexedDB support
+
+### Installation
+
+1. Clone the repository
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone <repository-url>
+cd productmind
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Install dependencies
+```bash
+npm install
+```
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+3. Run the development server
+```bash
+npm run dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+4. Open [http://localhost:3000](http://localhost:3000) in your browser
+
+## Database Schema
+
+The application uses **IndexedDB** for client-side data storage with the following structure:
+
+### Users Store
+```
+{
+  id: auto-increment,
+  name: string,
+  email: string (indexed, unique),
+  password: string (hashed),
+  created_at: date
+}
+```
+
+## Authentication
+
+The application uses client-side authentication:
+- User credentials are stored in IndexedDB
+- Passwords are hashed using bcrypt
+- Authentication state is tracked using localStorage
+- Protected routes are managed by client-side redirects
 
 ## Learn More
 

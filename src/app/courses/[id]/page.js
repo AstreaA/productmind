@@ -1,14 +1,23 @@
+'use client';
+
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { isUserLoggedIn } from '@/lib/auth';
 import CourseContent from './CourseContent';
 
-
-export async function generateStaticParams() {
-  
-  const courseIds = [1, 2, 3];
-  return courseIds.map((id) => ({
-    id: id.toString(),
-  }));
-}
-
 export default function CoursePage() {
-  return <CourseContent />;
+  const router = useRouter();
+
+  // Check if user is logged in
+  useEffect(() => {
+    if (!isUserLoggedIn()) {
+      router.push('/auth/login');
+    }
+  }, [router]);
+
+  return (
+    <div className="p-6">
+      <CourseContent />
+    </div>
+  );
 } 

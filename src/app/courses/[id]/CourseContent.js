@@ -2,11 +2,23 @@
 import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useState, useEffect, useRef } from 'react';
+import { isUserLoggedIn, getUserData } from '@/lib/auth';
+import { startCourse, markTheoryAsRead, markExerciseAsCompleted, getCourseTheory, getCourseExercises } from '@/lib/indexedDB';
 
 export default function CourseContent() {
   const params = useParams();
   const router = useRouter();
-  const courseId = params.id;
+  const courseId = parseInt(params.id, 10);
+
+  // User and auth state
+  const [userData, setUserData] = useState(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  
+  // Progress tracking
+  const [theoryProgress, setTheoryProgress] = useState([]);
+  const [exerciseProgress, setExerciseProgress] = useState([]);
+  const [isTheoryRead, setIsTheoryRead] = useState(false);
+  const [progressLoading, setProgressLoading] = useState(true);
 
   // Состояния для выбранной главы и урока
   const [selectedChapter, setSelectedChapter] = useState('Chapter 1');
@@ -134,6 +146,89 @@ The key tasks of a product manager are:
     }
   };
 
+  // Load user data and auth status
+  useEffect(() => {
+    const checkAuth = () => {
+      const loggedIn = isUserLoggedIn();
+      setIsLoggedIn(loggedIn);
+      
+      if (loggedIn) {
+        setUserData(getUserData());
+      } else {
+        router.push('/auth/login');
+      }
+    };
+    
+    checkAuth();
+    
+    // Listen for auth state changes
+    const handleAuthChange = () => {
+      checkAuth();
+    };
+    
+    window.addEventListener('auth-state-changed', handleAuthChange);
+    
+    return () => {
+      window.removeEventListener('auth-state-changed', handleAuthChange);
+    };
+  }, [router]);
+
+  // Start course and load progress
+  useEffect(() => {
+    const loadProgress = async () => {
+      if (!isLoggedIn || !userData) return;
+      
+      setProgressLoading(true);
+      try {
+        // Start the course (if not already started)
+        await startCourse(userData.id, courseId);
+        
+        // Get theory and exercise progress
+        const theory = await getCourseTheory(courseId);
+        const exercises = await getCourseExercises(courseId);
+        
+        setTheoryProgress(theory);
+        setExerciseProgress(exercises);
+        
+        // Check if current chapter/lesson has been read
+        const currentChapterNum = parseInt(selectedChapter.split(' ')[1], 10);
+        const currentLessonNum = parseInt(selectedLesson.split(' ')[1], 10);
+        const lessonId = (currentChapterNum - 1) * 3 + currentLessonNum; // Calculate a unique ID for this lesson
+        
+        const isRead = theory.some(t => t.chapter_id === lessonId);
+        setIsTheoryRead(isRead);
+        
+      } catch (error) {
+        console.error('Error loading course progress:', error);
+      } finally {
+        setProgressLoading(false);
+      }
+    };
+    
+    loadProgress();
+  }, [isLoggedIn, userData, courseId, selectedChapter, selectedLesson]);
+
+  // Mark current theory as read
+  const markCurrentTheoryAsRead = async () => {
+    if (!isLoggedIn || !userData || isTheoryRead) return;
+    
+    try {
+      const currentChapterNum = parseInt(selectedChapter.split(' ')[1], 10);
+      const currentLessonNum = parseInt(selectedLesson.split(' ')[1], 10);
+      const lessonId = (currentChapterNum - 1) * 3 + currentLessonNum; // Calculate a unique ID for this lesson
+      
+      await markTheoryAsRead(courseId, lessonId);
+      setIsTheoryRead(true);
+      
+      // Update progress
+      const theory = await getCourseTheory(courseId);
+      setTheoryProgress(theory);
+      
+    } catch (error) {
+      console.error('Error marking theory as read:', error);
+    }
+  };
+
   // Сценарии ответов AI для разных тем
   const aiResponses = {
     'product manager': {
@@ -195,7 +290,7 @@ The key tasks of a product manager are:
   };
 
   // Обработчик отправки теста
-  const handleTestSubmit = () => {
+  const handleTestSubmit = async () => {
     let correctCount = 0;
     Object.entries(selectedAnswers).forEach(([questionIndex, answer]) => {
       if (correctAnswers[questionIndex] === answer) {
@@ -206,6 +301,23 @@ The key tasks of a product manager are:
     const scorePercentage = (correctCount / Object.keys(correctAnswers).length) * 100;
     setScore(scorePercentage);
     setTestSubmitted(true);
+    
+    // If score is passing (70% or above), mark exercise as completed
+    if (scorePercentage >= 70 && isLoggedIn && userData) {
+      try {
+        const currentChapterNum = parseInt(selectedChapter.split(' ')[1], 10);
+        const exerciseId = currentChapterNum; // One exercise per chapter
+        
+        await markExerciseAsCompleted(courseId, exerciseId);
+        
+        // Update progress
+        const exercises = await getCourseExercises(courseId);
+        setExerciseProgress(exercises);
+        
+      } catch (error) {
+        console.error('Error marking exercise as completed:', error);
+      }
+    }
   };
 
   // Обработчик отправки сообщения
@@ -219,30 +331,15 @@ The key tasks of a product manager are:
     setIsLoading(true);
 
     try {
-      console.log('Sending message to API:', userMessage);
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ message: userMessage }),
-      });
-
-      console.log('API response status:', response.status);
-      const data = await response.json();
-      console.log('API response data:', data);
-
-      if (!response.ok) {
-        throw new Error(data.error || data.details || 'Failed to get response from AI');
-      }
-
-      if (!data.response) {
-        throw new Error('No response content received from API');
-      }
+      // Use local AI response instead of API for demo
+      const aiResponse = getAIResponse(userMessage);
+      
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
       setMessages(prev => [...prev, { 
         type: 'ai', 
-        content: data.response 
+        content: aiResponse
       }]);
     } catch (error) {
       console.error('Chat error:', error);
@@ -318,6 +415,22 @@ The key tasks of a product manager are:
               <p className="text-[#4056A1] whitespace-pre-line">{section.content}</p>
             </div>
           ))}
+          
+          {/* Mark as Read Button */}
+          {!isTheoryRead && !progressLoading && (
+            <button 
+              onClick={markCurrentTheoryAsRead}
+              className="mt-4 bg-[#4056A1] text-[#EFE2BA] px-4 py-2 rounded-lg hover:bg-[#2E3E7D] transition-colors"
+            >
+              Mark as Read
+            </button>
+          )}
+          
+          {isTheoryRead && (
+            <div className="mt-4 bg-green-100 text-green-800 px-4 py-2 rounded-lg">
+              ✓ You have completed this lesson
+            </div>
+          )}
         </div>
 
         {/* Right Column - Test */}
@@ -351,6 +464,7 @@ The key tasks of a product manager are:
             <button 
               onClick={handleTestSubmit}
               className="w-full bg-[#4056A1] text-[#EFE2BA] py-3 rounded-lg hover:bg-[#2E3E7D] transition-colors"
+              disabled={testSubmitted}
             >
               Submit Answers
             </button>
