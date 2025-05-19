@@ -4,7 +4,7 @@
 import bcrypt from 'bcryptjs';
 
 const DB_NAME = 'productMindDB';
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 const USER_STORE = 'users';
 const COURSES_STORE = 'courses';
 const THEORY_STORE = 'theory';
@@ -56,6 +56,8 @@ export function initDB() {
         
         // Create indexes for fast lookups
         theoryStore.createIndex('course_id', 'course_id', { unique: false });
+        theoryStore.createIndex('user_id', 'user_id', { unique: false });
+        theoryStore.createIndex('user_course', ['user_id', 'course_id'], { unique: false });
         
         console.log('Theory store created');
       }
@@ -66,6 +68,8 @@ export function initDB() {
         
         // Create indexes for fast lookups
         exercisesStore.createIndex('course_id', 'course_id', { unique: false });
+        exercisesStore.createIndex('user_id', 'user_id', { unique: false });
+        exercisesStore.createIndex('user_course', ['user_id', 'course_id'], { unique: false });
         
         console.log('Exercises store created');
       }
@@ -211,30 +215,28 @@ export async function startCourse(userId, courseId) {
 }
 
 // Mark theory as read
-export async function markTheoryAsRead(courseId, chapterId) {
+export async function markTheoryAsRead(userId, courseId, chapterId) {
   const db = await initDB();
-  
   return new Promise((resolve, reject) => {
     const transaction = db.transaction([THEORY_STORE], 'readwrite');
     const theoryStore = transaction.objectStore(THEORY_STORE);
-    
     // Add new theory entry
     const request = theoryStore.add({
+      user_id: userId,
       course_id: courseId,
       chapter_id: chapterId,
       theory_read: true,
       read_at: new Date().toISOString()
     });
-    
     request.onsuccess = (event) => {
       resolve({
         id: event.target.result,
+        user_id: userId,
         course_id: courseId,
         chapter_id: chapterId,
         theory_read: true
       });
     };
-    
     request.onerror = (event) => {
       reject('Error marking theory as read: ' + event.target.error);
     };
@@ -242,30 +244,28 @@ export async function markTheoryAsRead(courseId, chapterId) {
 }
 
 // Mark exercise as completed
-export async function markExerciseAsCompleted(courseId, exerciseId) {
+export async function markExerciseAsCompleted(userId, courseId, exerciseId) {
   const db = await initDB();
-  
   return new Promise((resolve, reject) => {
     const transaction = db.transaction([EXERCISES_STORE], 'readwrite');
     const exercisesStore = transaction.objectStore(EXERCISES_STORE);
-    
     // Add new exercise entry
     const request = exercisesStore.add({
+      user_id: userId,
       course_id: courseId,
       exercise_id: exerciseId,
       exercises_completed: true,
       completed_at: new Date().toISOString()
     });
-    
     request.onsuccess = (event) => {
       resolve({
         id: event.target.result,
+        user_id: userId,
         course_id: courseId,
         exercise_id: exerciseId,
         exercises_completed: true
       });
     };
-    
     request.onerror = (event) => {
       reject('Error marking exercise as completed: ' + event.target.error);
     };
@@ -293,42 +293,34 @@ export async function getUserCourses(userId) {
   });
 }
 
-// Get all read theory chapters for a course
-export async function getCourseTheory(courseId) {
+// Get all read theory chapters for a course and user
+export async function getCourseTheory(userId, courseId) {
   const db = await initDB();
-  
   return new Promise((resolve, reject) => {
     const transaction = db.transaction([THEORY_STORE], 'readonly');
     const theoryStore = transaction.objectStore(THEORY_STORE);
-    const index = theoryStore.index('course_id');
-    
-    const request = index.getAll(courseId);
-    
+    const index = theoryStore.index('user_course');
+    const request = index.getAll([userId, courseId]);
     request.onsuccess = (event) => {
       resolve(event.target.result);
     };
-    
     request.onerror = (event) => {
       reject('Error getting course theory: ' + event.target.error);
     };
   });
 }
 
-// Get all completed exercises for a course
-export async function getCourseExercises(courseId) {
+// Get all completed exercises for a course and user
+export async function getCourseExercises(userId, courseId) {
   const db = await initDB();
-  
   return new Promise((resolve, reject) => {
     const transaction = db.transaction([EXERCISES_STORE], 'readonly');
     const exercisesStore = transaction.objectStore(EXERCISES_STORE);
-    const index = exercisesStore.index('course_id');
-    
-    const request = index.getAll(courseId);
-    
+    const index = exercisesStore.index('user_course');
+    const request = index.getAll([userId, courseId]);
     request.onsuccess = (event) => {
       resolve(event.target.result);
     };
-    
     request.onerror = (event) => {
       reject('Error getting course exercises: ' + event.target.error);
     };
@@ -340,25 +332,20 @@ export async function getUserProgress(userId) {
   try {
     // Get all started courses
     const courses = await getUserCourses(userId);
-    
     if (courses.length === 0) {
       return { hasStartedCourses: false, courses: [] };
     }
-    
     // For each course, get theory and exercises
     const progressPromises = courses.map(async (course) => {
-      const theory = await getCourseTheory(course.id);
-      const exercises = await getCourseExercises(course.id);
-      
+      const theory = await getCourseTheory(userId, course.id);
+      const exercises = await getCourseExercises(userId, course.id);
       return {
         course_id: course.course_id,
         theories_read: theory.length,
         exercises_completed: exercises.length
       };
     });
-    
     const progress = await Promise.all(progressPromises);
-    
     return {
       hasStartedCourses: true,
       courses: progress

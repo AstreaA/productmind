@@ -35,6 +35,12 @@ export default function CourseContent() {
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef(null);
 
+  // ДОБАВЛЯЮ СОСТОЯНИЯ ДЛЯ ПРОЕКТНОГО ЗАДАНИЯ
+  const [projectText, setProjectText] = useState("");
+  const [projectSubmitted, setProjectSubmitted] = useState(false);
+  const [projectFeedback, setProjectFeedback] = useState(null);
+  const [projectLoading, setProjectLoading] = useState(false);
+
   // Правильные ответы
   const correctAnswers = {
     '1': 'A Specialist Who Manages The Product Strategy',
@@ -45,29 +51,26 @@ export default function CourseContent() {
   const chapters = [
     {
       id: 'Chapter 1',
-      title: 'Chapter 1',
+      title: 'Ch1: Introduction To Product Management',
       lessons: [
         { id: 'Lesson 1', title: 'Lesson 1' },
-        { id: 'Lesson 2', title: 'Lesson 2' },
-        { id: 'Lesson 3', title: 'Lesson 3' }
+        { id: 'Lesson 2', title: 'Lesson 2' }
       ]
     },
     {
       id: 'Chapter 2',
-      title: 'Chapter 2',
+      title: 'Ch2: Market Research And Competitor Analysis',
       lessons: [
         { id: 'Lesson 1', title: 'Lesson 1' },
-        { id: 'Lesson 2', title: 'Lesson 2' },
-        { id: 'Lesson 3', title: 'Lesson 3' }
+        { id: 'Lesson 2', title: 'Lesson 2' }
       ]
     },
     {
       id: 'Chapter 3',
-      title: 'Chapter 3',
+      title: 'Ch3: Development Of Product Strategy',
       lessons: [
         { id: 'Lesson 1', title: 'Lesson 1' },
-        { id: 'Lesson 2', title: 'Lesson 2' },
-        { id: 'Lesson 3', title: 'Lesson 3' }
+        { id: 'Lesson 2', title: 'Lesson 2' }
       ]
     }
   ];
@@ -75,43 +78,71 @@ export default function CourseContent() {
   const course = {
     id: courseId,
     title: 'Fundamentals Of Product Management: From Idea To Launch',
-    content: {
+    content: selectedChapter === 'Chapter 2' ? {
+      title: 'Market Research And Competitor Analysis',
+      sections: [
+        {
+          title: '1. What is Market Research?',
+          content: `Market research is the process of gathering, analyzing, and interpreting information about a market, including information about the target audience, competitors, and the industry as a whole.\n\nKey goals:\n• Understand customer needs and pain points.\n• Identify market trends and opportunities.\n• Reduce risks in product development.`
+        },
+        {
+          title: '2. Types of Market Research',
+          content: `There are two main types of market research:\n• Primary research: Collecting new data directly from potential customers (interviews, surveys, focus groups, observations).\n• Secondary research: Analyzing existing data (industry reports, competitor websites, public statistics, articles).\n\nBoth types are important for a comprehensive understanding of the market.`
+        },
+        {
+          title: '3. Competitor Analysis',
+          content: `Competitor analysis is the process of identifying your competitors and evaluating their strategies, strengths, and weaknesses.\n\nSteps:\n1. Identify direct and indirect competitors.\n2. Analyze their products, pricing, positioning, and marketing.\n3. Find gaps and opportunities for your product.\n\nTools: SWOT analysis, feature comparison tables, market mapping.`
+        }
+      ]
+    } : {
       title: 'Introduction To Product Management',
       sections: [
         {
           title: '1. Who is a product manager?',
-          content: `A Product Manager (PM) is a specialist who is responsible for product development, defines its strategy and leads it from idea to realization. A PM works at the intersection of business, technology and user needs.
-
-The key tasks of a product manager are:
-• Defining the product vision and product development strategy.
-• Analyzing the market, competitors and user needs.
-• Forming and prioritizing the backlog (list of tasks and features).
-• Interaction with developers, designers, marketers.
-• Product launch, hypothesis testing, feedback collection.`
+          content: `A Product Manager (PM) is a specialist who is responsible for product development, defines its strategy and leads it from idea to realization. A PM works at the intersection of business, technology and user needs.\n\nThe key tasks of a product manager are:\n• Defining the product vision and product development strategy.\n• Analyzing the market, competitors and user needs.\n• Forming and prioritizing the backlog (list of tasks and features).\n• Interaction with developers, designers, marketers.\n• Product launch, hypothesis testing, feedback collection.`
         },
         {
           title: '2. Basic skills of a product manager',
-          content: `To effectively manage a product, a PM must have the following skills:
-• Analytical thinking - ability to analyze data, metrics and user behavior.
-• Communication skills - working with teams, stakeholders and users.
-• Business thinking - understanding product economics, calculating unit economics.
-• Knowledge of UX/UI fundamentals - understanding user experience and interfaces.
-• Project management - Agile, Scrum, Kanban skills.`
+          content: `To effectively manage a product, a PM must have the following skills:\n• Analytical thinking - ability to analyze data, metrics and user behavior.\n• Communication skills - working with teams, stakeholders and users.\n• Business thinking - understanding product economics, calculating unit economics.\n• Knowledge of UX/UI fundamentals - understanding user experience and interfaces.\n• Project management - Agile, Scrum, Kanban skills.`
         },
         {
           title: '3. Product life cycle',
-          content: `Any product goes through several stages:
-1. Research and idea generation - studying the market, competitors, identifying user problems.
-2. Strategy development - defining the value proposition, audience, business model.
-3. Design and development - prototyping, roadmap building, working with the team.
-4. Launch MVP (Minimum Viable Product) - testing the basic version of the product.
-5. Growth and development - gathering analytics, introducing new features, attracting users.
-6. Maturity and scaling - search for new markets, product optimization.
-7. Product sunset - if the product loses relevance, it may be withdrawn from the market.`
+          content: `Any product goes through several stages:\n1. Research and idea generation - studying the market, competitors, identifying user problems.\n2. Strategy development - defining the value proposition, audience, business model.\n3. Design and development - prototyping, roadmap building, working with the team.\n4. Launch MVP (Minimum Viable Product) - testing the basic version of the product.\n5. Growth and development - gathering analytics, introducing new features, attracting users.\n6. Maturity and scaling - search for new markets, product optimization.\n7. Product sunset - if the product loses relevance, it may be withdrawn from the market.`
         }
       ]
     },
-    test: {
+    test: selectedChapter === 'Chapter 2' ? {
+      title: 'Test 2: Market Research And Competitor Analysis',
+      questions: [
+        {
+          question: '1. What is the main goal of market research?',
+          options: [
+            'To copy competitors',
+            'To understand customer needs and reduce risks',
+            'To increase product price',
+            'To hire more developers'
+          ]
+        },
+        {
+          question: '2. What is primary research?',
+          options: [
+            'Analyzing competitor websites',
+            'Collecting new data directly from customers',
+            'Reading industry reports',
+            'Copying features from other products'
+          ]
+        },
+        {
+          question: '3. What is the first step in competitor analysis?',
+          options: [
+            'Set product price',
+            'Identify direct and indirect competitors',
+            'Launch MVP',
+            'Create a marketing plan'
+          ]
+        }
+      ]
+    } : {
       title: 'Test 1: Fundamentals Of Product Management',
       questions: [
         {
@@ -177,53 +208,42 @@ The key tasks of a product manager are:
   useEffect(() => {
     const loadProgress = async () => {
       if (!isLoggedIn || !userData) return;
-      
       setProgressLoading(true);
       try {
-        // Start the course (if not already started)
         await startCourse(userData.id, courseId);
-        
-        // Get theory and exercise progress
-        const theory = await getCourseTheory(courseId);
-        const exercises = await getCourseExercises(courseId);
-        
+        const theory = await getCourseTheory(userData.id, courseId);
+        const exercises = await getCourseExercises(userData.id, courseId);
         setTheoryProgress(theory);
         setExerciseProgress(exercises);
-        
-        // Check if current chapter/lesson has been read
+        // DEBUG LOG
+        console.log('loadProgress:', { userId: userData.id, theory, exercises });
         const currentChapterNum = parseInt(selectedChapter.split(' ')[1], 10);
         const currentLessonNum = parseInt(selectedLesson.split(' ')[1], 10);
-        const lessonId = (currentChapterNum - 1) * 3 + currentLessonNum; // Calculate a unique ID for this lesson
-        
+        const lessonId = (currentChapterNum - 1) * 3 + currentLessonNum;
         const isRead = theory.some(t => t.chapter_id === lessonId);
         setIsTheoryRead(isRead);
-        
       } catch (error) {
         console.error('Error loading course progress:', error);
       } finally {
         setProgressLoading(false);
       }
     };
-    
     loadProgress();
   }, [isLoggedIn, userData, courseId, selectedChapter, selectedLesson]);
 
   // Mark current theory as read
   const markCurrentTheoryAsRead = async () => {
     if (!isLoggedIn || !userData || isTheoryRead) return;
-    
     try {
       const currentChapterNum = parseInt(selectedChapter.split(' ')[1], 10);
       const currentLessonNum = parseInt(selectedLesson.split(' ')[1], 10);
-      const lessonId = (currentChapterNum - 1) * 3 + currentLessonNum; // Calculate a unique ID for this lesson
-      
-      await markTheoryAsRead(courseId, lessonId);
+      const lessonId = (currentChapterNum - 1) * 3 + currentLessonNum;
+      await markTheoryAsRead(userData.id, courseId, lessonId);
       setIsTheoryRead(true);
-      
-      // Update progress
-      const theory = await getCourseTheory(courseId);
+      const theory = await getCourseTheory(userData.id, courseId);
       setTheoryProgress(theory);
-      
+      // DEBUG LOG
+      console.log('markCurrentTheoryAsRead:', { userId: userData.id, theory });
     } catch (error) {
       console.error('Error marking theory as read:', error);
     }
@@ -297,23 +317,18 @@ The key tasks of a product manager are:
         correctCount++;
       }
     });
-    
     const scorePercentage = (correctCount / Object.keys(correctAnswers).length) * 100;
     setScore(scorePercentage);
     setTestSubmitted(true);
-    
-    // If score is passing (70% or above), mark exercise as completed
     if (scorePercentage >= 70 && isLoggedIn && userData) {
       try {
         const currentChapterNum = parseInt(selectedChapter.split(' ')[1], 10);
-        const exerciseId = currentChapterNum; // One exercise per chapter
-        
-        await markExerciseAsCompleted(courseId, exerciseId);
-        
-        // Update progress
-        const exercises = await getCourseExercises(courseId);
+        const exerciseId = currentChapterNum;
+        await markExerciseAsCompleted(userData.id, courseId, exerciseId);
+        const exercises = await getCourseExercises(userData.id, courseId);
         setExerciseProgress(exercises);
-        
+        // DEBUG LOG
+        console.log('markExerciseAsCompleted:', { userId: userData.id, exercises });
       } catch (error) {
         console.error('Error marking exercise as completed:', error);
       }
@@ -360,6 +375,31 @@ The key tasks of a product manager are:
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+
+  async function handleProjectSubmit(e) {
+    e.preventDefault();
+    setProjectLoading(true);
+    setProjectSubmitted(true);
+    // Здесь должен быть реальный вызов OpenAI API
+    // Ниже пример заглушки для демонстрации
+    setTimeout(async () => {
+      const feedback = {
+        score: 8.5,
+        comment: `✅ Хорошо описана ситуация и шаги PM.\n\n⚠️ Можно подробнее раскрыть анализ альтернатив и критерии успеха.\n\n✅ Итог: работа выполнена на высоком уровне!`
+      };
+      setProjectFeedback(feedback);
+      setProjectLoading(false);
+      // Если балл >= 7, засчитываем выполнение задания
+      if (feedback.score >= 7 && isLoggedIn && userData) {
+        // Для проектных заданий: номер упражнения = номер урока (Lesson 2 -> 2)
+        await markExerciseAsCompleted(userData.id, courseId, 2);
+        // Обновить прогресс
+        const exercises = await getCourseExercises(userData.id, courseId);
+        setExerciseProgress(exercises);
+      }
+    }, 1500);
+  }
 
   return (
     <main>
@@ -433,48 +473,89 @@ The key tasks of a product manager are:
           )}
         </div>
 
-        {/* Right Column - Test */}
+        {/* Right Column - Test or Project */}
         <div className="bg-[#C5CBE3] rounded-xl p-6">
-          <h2 className="text-2xl font-bold text-[#4056A1] mb-6">{course.test.title}</h2>
-          {course.test.questions.map((q, index) => (
-            <div key={index} className="mb-6">
-              <h3 className="text-[#4056A1] font-semibold mb-4">{q.question}</h3>
-              <div className="space-y-2">
-                {q.options.map((option, optIndex) => (
-                  <button
-                    key={optIndex}
-                    onClick={() => handleAnswerSelect(index + 1, option)}
-                    className={`w-full text-center p-3 rounded-lg transition-colors
-                      ${selectedAnswers[index + 1] === option 
-                        ? 'bg-[#F13C20] text-[#EFE2BA]' 
-                        : 'bg-[#E6A5A0] text-[#EFE2BA] hover:bg-[#F13C20]'}
-                      ${testSubmitted && correctAnswers[index + 1] === option 
-                        ? 'bg-green-500' 
-                        : testSubmitted && selectedAnswers[index + 1] === option && correctAnswers[index + 1] !== option 
-                          ? 'bg-gray-400' 
-                          : ''}`}
-                  >
-                    {option}
-                  </button>
-                ))}
+          {selectedChapter === 'Chapter 1' && selectedLesson === 'Lesson 2' ? (
+            <>
+              <h2 className="text-2xl font-bold text-[#4056A1] mb-6">Case 2: Product Manager's Role in a Real Situation</h2>
+              <div className="mb-4 text-[#4056A1]">
+                <b>Task:</b>
+                <br />
+                Опишите реальную или вымышленную ситуацию, в которой продукт-менеджер должен принять важное решение для развития продукта.<br />
+                <ul className="list-disc ml-6 mt-2">
+                  <li>Опишите проблему, с которой столкнулся продукт-менеджер.</li>
+                  <li>Какие шаги он предпринял для её решения?</li>
+                  <li>Какой результат был достигнут?</li>
+                </ul>
               </div>
-            </div>
-          ))}
-          <div className="space-y-4">
-            <button 
-              onClick={handleTestSubmit}
-              className="w-full bg-[#4056A1] text-[#EFE2BA] py-3 rounded-lg hover:bg-[#2E3E7D] transition-colors"
-              disabled={testSubmitted}
-            >
-              Submit Answers
-            </button>
-            {testSubmitted && score !== null && (
-              <div className={`text-center p-4 rounded-lg ${score >= 70 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                Your score: {Math.round(score)}%
-                {Math.round(score) >= 70 ? ' - Great job!' : ' - Keep practicing!'}
+              <form onSubmit={handleProjectSubmit}>
+                <textarea
+                  className="w-full min-h-[120px] p-3 rounded-lg border border-[#EFE2BA] mb-4 text-[#4056A1]"
+                  placeholder="Введите ваш ответ здесь..."
+                  value={projectText}
+                  onChange={e => setProjectText(e.target.value)}
+                  disabled={projectSubmitted}
+                />
+                <button
+                  type="submit"
+                  className="w-full bg-[#4056A1] text-[#EFE2BA] py-3 rounded-lg hover:bg-[#2E3E7D] transition-colors mb-4"
+                  disabled={projectSubmitted || projectLoading || !projectText.trim()}
+                >
+                  {projectLoading ? 'Submitting...' : projectSubmitted ? 'Submitted' : 'Submit'}
+                </button>
+              </form>
+              {projectFeedback && (
+                <div className="bg-white rounded-lg p-4 mt-2">
+                  <h3 className="font-bold text-[#F13C20] mb-2">Feedback from AI assistant</h3>
+                  <div className="mb-2 text-[#4056A1] whitespace-pre-line">{projectFeedback.comment}</div>
+                  <div className="font-bold text-[#4056A1]">Overall score: <span className="text-[#F13C20]">{projectFeedback.score}/10</span></div>
+                </div>
+              )}
+            </>
+          ) : (
+            <>
+              <h2 className="text-2xl font-bold text-[#4056A1] mb-6">{course.test.title}</h2>
+              {course.test.questions.map((q, index) => (
+                <div key={index} className="mb-6">
+                  <h3 className="text-[#4056A1] font-semibold mb-4">{q.question}</h3>
+                  <div className="space-y-2">
+                    {q.options.map((option, optIndex) => (
+                      <button
+                        key={optIndex}
+                        onClick={() => handleAnswerSelect(index + 1, option)}
+                        className={`w-full text-center p-3 rounded-lg transition-colors
+                          ${selectedAnswers[index + 1] === option 
+                            ? 'bg-[#F13C20] text-[#EFE2BA]' 
+                            : 'bg-[#E6A5A0] text-[#EFE2BA] hover:bg-[#F13C20]'}
+                          ${testSubmitted && correctAnswers[index + 1] === option 
+                            ? 'bg-green-500' 
+                            : testSubmitted && selectedAnswers[index + 1] === option && correctAnswers[index + 1] !== option 
+                              ? 'bg-gray-400' 
+                              : ''}`}
+                      >
+                        {option}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+              <div className="space-y-4">
+                <button 
+                  onClick={handleTestSubmit}
+                  className="w-full bg-[#4056A1] text-[#EFE2BA] py-3 rounded-lg hover:bg-[#2E3E7D] transition-colors"
+                  disabled={testSubmitted}
+                >
+                  Submit Answers
+                </button>
+                {testSubmitted && score !== null && (
+                  <div className={`text-center p-4 rounded-lg ${score >= 70 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                    Your score: {Math.round(score)}%
+                    {Math.round(score) >= 70 ? ' - Great job!' : ' - Keep practicing!'}
+                  </div>
+                )}
               </div>
-            )}
-          </div>
+            </>
+          )}
         </div>
       </div>
 
