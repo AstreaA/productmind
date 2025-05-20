@@ -81,15 +81,7 @@ export default function Navbar() {
           
           {menuOpen && (
             <div className="absolute right-0 top-14 w-60 bg-[#4056A1] rounded-lg shadow-lg py-4 z-10">
-              <div className="px-6 text-[#F13C20] font-bold text-xl mb-2">
-                Menu
-              </div>
               
-              <div className="flex justify-end px-6 mb-4">
-                <div className="w-12 h-12 bg-[#C5CBE3] rounded-full flex items-center justify-center">
-                  <div className="text-[#4056A1] text-xl">:)</div>
-                </div>
-              </div>
               
               <Link href="/profile">
                 <div className="px-6 py-2 text-[#EFE2BA] hover:bg-[#3A4D8F] cursor-pointer">

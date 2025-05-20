@@ -215,7 +215,7 @@ export default function CourseContent() {
         const exercises = await getCourseExercises(userData.id, courseId);
         setTheoryProgress(theory);
         setExerciseProgress(exercises);
-        // DEBUG LOG
+
         console.log('loadProgress:', { userId: userData.id, theory, exercises });
         const currentChapterNum = parseInt(selectedChapter.split(' ')[1], 10);
         const currentLessonNum = parseInt(selectedLesson.split(' ')[1], 10);
@@ -242,14 +242,14 @@ export default function CourseContent() {
       setIsTheoryRead(true);
       const theory = await getCourseTheory(userData.id, courseId);
       setTheoryProgress(theory);
-      // DEBUG LOG
+      
       console.log('markCurrentTheoryAsRead:', { userId: userData.id, theory });
     } catch (error) {
       console.error('Error marking theory as read:', error);
     }
   };
 
-  // Сценарии ответов AI для разных тем
+  
   const aiResponses = {
     'product manager': {
       keywords: ['product manager', 'pm', 'product management'],
@@ -287,7 +287,7 @@ export default function CourseContent() {
   const handleChapterChange = (e) => {
     const newChapter = e.target.value;
     setSelectedChapter(newChapter);
-    setSelectedLesson('Lesson 1'); // Сброс урока на первый при смене главы
+    setSelectedLesson('Lesson 1'); 
     router.push(`/courses/${courseId}?chapter=${newChapter}&lesson=Lesson 1`);
   };
 
@@ -327,7 +327,7 @@ export default function CourseContent() {
         await markExerciseAsCompleted(userData.id, courseId, exerciseId);
         const exercises = await getCourseExercises(userData.id, courseId);
         setExerciseProgress(exercises);
-        // DEBUG LOG
+        
         console.log('markExerciseAsCompleted:', { userId: userData.id, exercises });
       } catch (error) {
         console.error('Error marking exercise as completed:', error);
@@ -381,12 +381,11 @@ export default function CourseContent() {
     e.preventDefault();
     setProjectLoading(true);
     setProjectSubmitted(true);
-    // Здесь должен быть реальный вызов OpenAI API
-    // Ниже пример заглушки для демонстрации
+    
     setTimeout(async () => {
       const feedback = {
         score: 8.5,
-        comment: `✅ Хорошо описана ситуация и шаги PM.\n\n⚠️ Можно подробнее раскрыть анализ альтернатив и критерии успеха.\n\n✅ Итог: работа выполнена на высоком уровне!`
+        comment: `✅ The situation and PM steps are well described.\n\n\n⚠️ The analysis of alternatives and success criteria can be detailed.\n\n\n✅ Bottom line: the work is done at a high level!`
       };
       setProjectFeedback(feedback);
       setProjectLoading(false);
@@ -481,11 +480,11 @@ export default function CourseContent() {
               <div className="mb-4 text-[#4056A1]">
                 <b>Task:</b>
                 <br />
-                Опишите реальную или вымышленную ситуацию, в которой продукт-менеджер должен принять важное решение для развития продукта.<br />
+                Describe a real or fictional situation in which a product manager must make an important decision for product development.<br />
                 <ul className="list-disc ml-6 mt-2">
-                  <li>Опишите проблему, с которой столкнулся продукт-менеджер.</li>
-                  <li>Какие шаги он предпринял для её решения?</li>
-                  <li>Какой результат был достигнут?</li>
+                  <li>Describe a problem encountered by the product manager.</li>
+                  <li>What steps did he take to solve it?</li>
+                  <li>What result was achieved?</li>
                 </ul>
               </div>
               <form onSubmit={handleProjectSubmit}>

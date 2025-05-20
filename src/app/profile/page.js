@@ -96,23 +96,23 @@ export default function ProfilePage() {
     <div className="min-h-screen bg-[#EFE2BA] flex flex-col">
       <div className="container mx-auto flex-grow p-8">
         <div className="bg-[#4056A1] rounded-lg shadow-md p-8 max-w-3xl mx-auto">
-          <h1 className="text-2xl font-bold text-white mb-6">Your Profile</h1>
+          <h1 className="text-2xl font-bold text-[#EFE2BA] mb-6">Your Profile</h1>
           
           <div className="mb-6">
             <div className="mt-4 space-y-4">
               <div>
-                <p className="text-sm text-[#C5CBE3]">Name</p>
-                <p className="font-medium text-white">{userData.name}</p>
+                <p className="text-sm text-[#BCB5A1]">Name</p>
+                <p className="font-medium text-[#EFE2BA]">{userData.name}</p>
               </div>
               <div>
-                <p className="text-sm text-[#C5CBE3]">Email</p>
-                <p className="font-medium text-white">{userData.email}</p>
+                <p className="text-sm text-[#BCB5A1]">Email</p>
+                <p className="font-medium text-[#EFE2BA]">{userData.email}</p>
               </div>
             </div>
           </div>
           
           <div className="mt-8">
-            <h2 className="text-xl font-semibold text-white mb-4">Your Progress</h2>
+            <h2 className="text-2xl font-semibold text-[#EFE2BA] mb-4">Your Progress</h2>
             {progressData && (!progressData.hasStartedCourses || !progressData.courses.length) ? (
               <div className="bg-[#C5CBE3] rounded-lg p-6 text-center">
                 <p className="text-[#4056A1] font-medium">
